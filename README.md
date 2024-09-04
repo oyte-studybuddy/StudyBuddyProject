@@ -1,6 +1,3 @@
-Here is the updated README file without the License and Installation sections:
-
-```markdown
 # StudyBuddy
 
 ### A Comprehensive Study Management System
