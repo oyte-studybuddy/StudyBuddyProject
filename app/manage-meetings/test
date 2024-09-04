@@ -1,0 +1,197 @@
+"use client"
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
+import { Separator } from "@/components/ui/separator";
+import React, {useRef} from "react";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardDescription,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import Link from "next/link";
+import { PopupModal } from "react-calendly";
+
+
+const url="https://calendly.com/maazahmed2k16"
+
+
+
+async function getAllCalendlyEvents(apiToken, organizationId) {
+  const baseUrl = 'https://api.calendly.com/scheduled_events';
+  const headers = {
+    'Authorization': `Bearer ${apiToken}`
+  };
+
+  let page = 1;
+  let allEvents = [];
+
+  const fetchEvents = async () => {
+    try {
+      const params = new URLSearchParams({
+        organization: `https://api.calendly.com/organizations/${organizationId}`,
+        page: page
+      });
+      const response = await fetch(`${baseUrl}?${params}`, { headers });
+      const data = await response.json();
+
+      allEvents = allEvents.concat(data.events);
+
+      if (data.pagination && data.pagination.next) {
+        page++;
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Basic rate limiting
+        await fetchEvents();
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
+
+  await fetchEvents();
+  return allEvents;
+}
+
+
+const apiToken = 'YOUR_API_TOKEN';
+const organizationId = 'YOUR_ORGANIZATION_ID';
+
+getAllCalendlyEvents(apiToken, organizationId)
+  .then(events => {
+    // console.log(events);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+
+
+class CustomButtonExample extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      isOpen: false,
+    };
+  }
+
+  render() {
+    return (
+      <div>
+        <button
+          style={{ display: "block", margin: "0 auto" }}
+          onClick={() => this.setState({ isOpen: true })}
+        >
+          Custom Button
+        </button>
+        <PopupModal
+          url={url}
+          pageSettings={this.props.pageSettings}
+          utm={this.props.utm}
+          prefill={this.props.prefill}
+          onModalClose={() => this.setState({ isOpen: false })}
+          open={this.state.isOpen}
+          /*
+           * react-calendly uses React's Portal feature (https://reactjs.org/docs/portals.html) to render the popup modal. As a result, you'll need to
+           * specify the rootElement property to ensure that the modal is inserted into the correct domNode.
+           */
+          rootElement={document.getElementById("rooot")}
+        />
+      </div>
+    );
+  }
+}
+// const Calendly = () => {
+//   useCalendlyEventListener({
+//     onProfilePageViewed: () => // console.log("onProfilePageViewed"),
+//     onDateAndTimeSelected: () => // console.log("onDateAndTimeSelected"),
+//     onEventTypeViewed: () => // console.log("onEventTypeViewed"),
+//     onEventScheduled: (e) => // console.log(e.data.payload),
+//     onPageHeightResize: (e) => // console.log(e.data.payload.height),
+//   });
+
+//   return (
+//     <div className="App">
+//       <InlineWidget url={url} />
+//     </div>
+//   );
+// };
+
+
+
+const SectionHeader = ({ sectionTitle, sectionButtonTitle,sectionButtonRoute }) => {
+  return (
+    <div className=" w-full items-center justify-between  text-sm lg:flex">
+      <h2 className="mt-10 scroll-m-20 text-3xl font-semibold tracking-tight transition-colors first:mt-0">
+        {sectionTitle}
+      </h2>
+      <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
+        {sectionButtonTitle? (
+          <Button asChild>
+            <Link href={sectionButtonRoute}>CREATE GROUP</Link>
+          </Button>
+        ):null}
+      </div>
+    </div>
+  );
+};
+
+const GroupCardSectionBody = ({ sectionTitle, sectionButtonRoute,sectionButtonTitle, cardButtonTitle ,cardButtonRoute}) => {
+  return (
+    <section className="container z-10 max-w-7xl px-0 md:px-0">
+      <SectionHeader
+      sectionButtonRoute={sectionButtonRoute}
+        sectionButtonTitle={sectionButtonTitle}
+        sectionTitle={sectionTitle}
+      />
+      <CustomButtonExample/>
+
+      <div id="rooot" ></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-6   ">
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((val) => (
+          <Card key={val} className="text-csenter w-full">
+            <CardHeader>
+              <div className="flex justify-between items-center mb-4">
+                <Avatar>
+                  <AvatarImage src="https://github.com/shadcn.ng" />
+                  <AvatarFallback className="bg-red-300">CN</AvatarFallback>
+                </Avatar>
+                <CardDescription>100K Members</CardDescription>
+              </div>
+              <CardTitle>Group Name</CardTitle>
+              <CardDescription>
+                Lorem, ipsum dolor sit amet consectetur elit....
+              </CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Button className="bg-[#2ab56f]" size="sm" asChild>
+                <Link href={cardButtonRoute}>{cardButtonTitle}</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default function Home() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <div className="">
+        <GroupCardSectionBody
+          sectionButtonTitle={"CREATE GROUP"}
+          sectionButtonRoute={"/group/create-study-group"}
+          sectionTitle="My Groups"
+          cardButtonTitle={"Vsit Group"}
+          cardButtonRoute="/group/group?grp=c3d4fr67vf567yjut67fr56"
+        />
+      </div>
+      <div className="mt-24">
+        <GroupCardSectionBody cardButtonRoute="/group/join-study-group?grp=c3d4fr67vf567yjut67fr56" cardButtonTitle={"Join Group"} sectionTitle="Groups" />
+      </div>
+    </main>
+  );
+}
